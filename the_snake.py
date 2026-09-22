@@ -43,7 +43,7 @@ class GameObject:
     """Базовый класс для игровых объектов."""
 
     def __init__(self, body_color=None):
-        """Инициализирует позицию в центре поля и цвет объекта."""
+        """Задаёт позицию в центре поля и цвет объекта."""
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.body_color = body_color
 
@@ -53,10 +53,14 @@ class GameObject:
 
 
 class Apple(GameObject):
-    """Яблоко: появляется в случайной клетке игрового поля."""
+    """Яблоко, которое собирает змейка.
+
+    При создании появляется в случайной клетке поля.
+    После съедения перемещается в новую случайную клетку.
+    """
 
     def __init__(self):
-        """Задаёт цвет яблока и случайную стартовую позицию."""
+        """Задаёт цвет яблока и его стартовую позицию."""
         super().__init__(body_color=APPLE_COLOR)
         self.randomize_position()
 
@@ -75,7 +79,11 @@ class Apple(GameObject):
 
 
 class Snake(GameObject):
-    """Змейка: движение, рост, столкновения и отрисовка."""
+    """Змейка: движение, рост, столкновения и отрисовка.
+
+    Хранит сегменты тела как список координат.
+    Первый элемент списка — голова змейки.
+    """
 
     def __init__(self):
         """Инициализирует змейку в начальном состоянии."""
@@ -95,13 +103,17 @@ class Snake(GameObject):
         return self.positions[0]
 
     def update_direction(self):
-        """Применяет выбранное пользователем направление движения."""
+        """Применяет выбранное пользователем направление."""
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
 
     def move(self):
-        """Сдвигает змейку на одну клетку с проходом сквозь стены."""
+        """Сдвигает змейку на одну клетку.
+
+        Проходит сквозь границы поля, появляясь с другой стороны.
+        Если длина списка превышает self.length, удаляет хвост.
+        """
         head_x, head_y = self.get_head_position()
         dx, dy = self.direction
         new_head = (
@@ -113,37 +125,41 @@ class Snake(GameObject):
             self.last = self.positions.pop()
 
     def draw(self):
-        """Рисует змейку и затирает след удалённого сегмента."""
+        """Рисует змейку и затирает след последнего сегмента."""
         for position in self.positions[:-1]:
             rect = pygame.Rect(position, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, self.body_color, rect)
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-        # Отрисовка головы змейки
-        head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
+        head_rect = pygame.Rect(
+            self.positions[0], (GRID_SIZE, GRID_SIZE)
+        )
         pygame.draw.rect(screen, self.body_color, head_rect)
         pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
 
-        # Затирание последнего сегмента
         if self.last:
             last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
 
 def handle_keys(game_object):
-    """Обрабатывает нажатия клавиш и задаёт новое направление."""
+    """Обрабатывает нажатия клавиш, задавая новое направление."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             raise SystemExit
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and game_object.direction != DOWN:
+            if (event.key == pygame.K_UP
+                    and game_object.direction != DOWN):
                 game_object.next_direction = UP
-            elif event.key == pygame.K_DOWN and game_object.direction != UP:
+            elif (event.key == pygame.K_DOWN
+                    and game_object.direction != UP):
                 game_object.next_direction = DOWN
-            elif event.key == pygame.K_LEFT and game_object.direction != RIGHT:
+            elif (event.key == pygame.K_LEFT
+                    and game_object.direction != RIGHT):
                 game_object.next_direction = LEFT
-            elif event.key == pygame.K_RIGHT and game_object.direction != LEFT:
+            elif (event.key == pygame.K_RIGHT
+                    and game_object.direction != LEFT):
                 game_object.next_direction = RIGHT
 
 
@@ -174,4 +190,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
